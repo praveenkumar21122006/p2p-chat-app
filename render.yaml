@@ -3,8 +3,8 @@ services:
     name: secure-p2p-chat
     runtime: node
     plan: free
-    buildCommand: npm ci --omit=dev
-    startCommand: node server.js
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
     healthCheckPath: /
     envVars:
       - key: PORT
