@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="referrer" content="no-referrer" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Secure Private Chat</title>
+  <link rel="preload" as="style" href="/styles.css" />
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    /* Critical first-paint styles (no white flash before styles.css loads) */
+    body { background-color: #09090b; color: #f4f4f5; }
+    /* ---------------------------------------------------------------
+       Connection checklist animation: fade/slides items in one by one
+       --------------------------------------------------------------- */
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .check-item { animation: slideIn 0.35s ease forwards; opacity: 0; }
+
+    /* Chat enter transition (screen 3 slide in) */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.35s ease forwards; }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 8px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="h-full bg-zinc-950 text-zinc-100 antialiased selection:bg-indigo-500/30">
+
+  <div class="h-full min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- ================================================================
+         SCREEN 1: AUTH GATE
+         ================================================================ -->
+    <section id="screen-auth" class="w-full max-w-md fade-up">
+      <div class="bg-zinc-900/80 border border-zinc-800 rounded-2xl shadow-2xl shadow-black/50 p-8 backdrop-blur">
+        <div class="flex items-center gap-2 mb-1">
+          <svg class="w-6 h-6 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 8a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0115.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+          </svg>
+          <h1 class="text-2xl font-bold tracking-tight">Private Tunnel</h1>
+        </div>
+        <p class="text-sm text-zinc-400 mb-6">End-to-end encrypted 1-on-1 chat. Keys never leave your device.</p>
+
+        <form id="auth-form" class="space-y-4" autocomplete="off" novalidate>
+          <div>
+            <label for="room-input" class="block text-xs font-medium text-zinc-400 mb-1.5">Room ID</label>
+            <input id="room-input" type="text" required placeholder="e.g. mountain-cave-7"
+                   class="w-full rounded-lg bg-zinc-800/70 border border-zinc-700 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500 transition" />
+          </div>
+
+          <div>
+            <label for="name-input" class="block text-xs font-medium text-zinc-400 mb-1.5">Display Username</label>
+            <input id="name-input" type="text" required maxlength="24" placeholder="e.g. Alex"
+                   class="w-full rounded-lg bg-zinc-800/70 border border-zinc-700 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500 transition" />
+          </div>
+
+          <div>
+            <label for="pass-input" class="block text-xs font-medium text-zinc-400 mb-1.5">Shared Secret Passphrase</label>
+            <input id="pass-input" type="password" required minlength="8" placeholder="••••••••"
+                   class="w-full rounded-lg bg-zinc-800/70 border border-zinc-700 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500 transition" />
+          </div>
+
+          <button id="auth-submit" type="submit"
+                  class="w-full rounded-lg bg-indigo-600 hover:bg-indigo-500 active:scale-[0.99] text-white font-medium py-2.5 text-sm transition disabled:opacity-50 disabled:cursor-not-allowed">
+            Establish Secure Tunnel
+          </button>
+        </form>
+
+        <p class="text-[11px] text-zinc-500 mt-5 leading-relaxed">
+          End-to-end encrypted via AES-GCM (PBKDF2 100k). No keys, messages, or passwords are ever stored server-side.
+        </p>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SCREEN 2: CONNECTION LOBBY
+         ================================================================ -->
+    <section id="screen-lobby" class="hidden w-full max-w-md">
+      <div class="bg-zinc-900/80 border border-zinc-800 rounded-2xl shadow-2xl shadow-black/50 p-8 backdrop-blur">
+        <h2 class="text-lg font-semibold mb-4">Establishing Secure Tunnel</h2>
+
+        <ul id="checklist" class="space-y-3 mb-8">
+          <li id="check-signal" class="check-item flex items-center gap-3 text-sm text-zinc-400">
+            <span id="icon-signal" class="w-4 h-4 rounded-full border-2 border-zinc-600 shrink-0"></span>
+            Connecting to signaling server...
+          </li>
+          <li id="check-peer" class="check-item flex items-center gap-3 text-sm text-zinc-400">
+            <span id="icon-peer" class="w-4 h-4 rounded-full border-2 border-zinc-600 shrink-0"></span>
+            <span>Awaiting your peer to join room <strong id="lobby-room-id" class="text-zinc-200"></strong>...</span>
+          </li>
+          <li id="check-tunnel" class="check-item flex items-center gap-3 text-sm text-zinc-400">
+            <span id="icon-tunnel" class="w-4 h-4 rounded-full border-2 border-zinc-600 shrink-0"></span>
+            Building direct P2P connection tunnel...
+          </li>
+        </ul>
+
+        <button id="cancel-btn"
+                class="w-full rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium py-2.5 text-sm transition">
+          Cancel and Abort
+        </button>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SCREEN 3: MAIN CHAT INTERFACE
+         ================================================================ -->
+    <section id="screen-chat" class="hidden w-full max-w-3xl fade-up">
+      <div class="flex flex-col h-[80vh] min-h-[480px] bg-zinc-900/80 border border-zinc-800 rounded-2xl shadow-2xl shadow-black/50 overflow-hidden">
+
+        <!-- Chat header -->
+        <header class="flex items-center justify-between bg-zinc-900 border-b border-zinc-800 px-5 py-3">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shrink-0"></div>
+            <div class="min-w-0">
+              <div class="text-sm font-semibold truncate">Room <span id="chat-room-id" class="text-indigo-400"></span></div>
+              <div class="text-[11px] text-emerald-400" id="conn-status">Direct &amp; Secure Connection Established</div>
+            </div>
+          </div>
+
+          <!-- Panic Button: wipes session + RAM via full reload -->
+          <button id="panic-btn"
+                  class="flex items-center gap-2 rounded-lg bg-red-600/90 hover:bg-red-600 active:scale-[0.97] text-white text-xs font-bold uppercase tracking-wider px-4 py-2 transition">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Wipe Session &amp; RAM
+          </button>
+        </header>
+
+        <!-- Message area -->
+        <div id="chat-window" class="flex-1 overflow-y-auto px-5 py-4 space-y-3 bg-zinc-950/40"></div>
+
+        <!-- Composer -->
+        <div class="border-t border-zinc-800 bg-zinc-900 p-4">
+          <textarea id="chat-input" rows="1" placeholder="Type a message... (Enter to send, Shift+Enter for new line)"
+                    class="w-full resize-none rounded-xl bg-zinc-800/70 border border-zinc-700 px-4 py-3 text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500 transition max-h-32"></textarea>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: secure-p2p-chat
+    runtime: node
+    plan: free
+    buildCommand: npm ci --omit=dev
+    startCommand: node server.js
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: 10000

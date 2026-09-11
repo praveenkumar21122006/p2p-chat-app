@@ -1,0 +1,20 @@
+{
+  "name": "secure-p2p-chat",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "build:css": "tailwindcss -c tailwind.config.cjs -i styles.input.css -o public/styles.css --minify",
+    "build": "npm run build:css"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.14"
+  }
+}
